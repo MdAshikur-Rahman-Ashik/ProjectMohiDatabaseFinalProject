@@ -11,21 +11,22 @@ namespace ProjectMohiDatabase.Controllers
     public class TicketAttachmentController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IWebHostEnvironment _environment;
 
-        public TicketAttachmentController(AppDbContext context, IWebHostEnvironment hostEnvironment)
+        public TicketAttachmentController(AppDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
-            _hostEnvironment = hostEnvironment;
+            _environment = environment;
         }
 
-        // POST: api/TicketAttachment
+        // POST: api/TicketAttachments
         [HttpPost]
-        public async Task<IActionResult> PostTicketAttachment([FromForm] TicketAttachmentCreateDTOs ticketAttachmentCreateDTO)
+        public async Task<ActionResult<TicketAttachmentDTOs>> PostTicketAttachment([FromForm] TicketAttachmentCreateDTOs ticketAttachmentCreateDTO)
         {
+            // Check if the file is uploaded
             if (ticketAttachmentCreateDTO.AttachFile == null || ticketAttachmentCreateDTO.AttachFile.Length == 0)
             {
-                return BadRequest("No file uploaded.");
+                return BadRequest("File not provided.");
             }
 
             // Validate TicketSupportID
@@ -35,27 +36,45 @@ namespace ProjectMohiDatabase.Controllers
                 return NotFound("TicketSupport not found.");
             }
 
-            // Save the uploaded file
-            var filePath = await SaveFile(ticketAttachmentCreateDTO.AttachFile);
+            // Save the file to the server
+            var uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads", "ticket_attachments");
+            Directory.CreateDirectory(uploadsFolder);
 
-            // Create TicketAttachment entity
+            var fileName = $"{Guid.NewGuid()}_{ticketAttachmentCreateDTO.AttachFile.FileName}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await ticketAttachmentCreateDTO.AttachFile.CopyToAsync(stream);
+            }
+
+            // Save the file info to the database
             var ticketAttachment = new TicketAttachment
             {
                 TicketSupportID = ticketAttachmentCreateDTO.TicketSupportID,
-                AttachFile = filePath
+                AttachFile = fileName  // Storing the file name
             };
 
             _context.TicketAttachments.Add(ticketAttachment);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTicketAttachment), new { id = ticketAttachment.TicketAttachID }, ticketAttachment);
+            // Return DTO with the file URL
+            var ticketAttachmentDTO = new TicketAttachmentDTOs
+            {
+                TicketAttachID = ticketAttachment.TicketAttachID,
+                TicketSupportID = ticketAttachment.TicketSupportID,
+                AttachFileUrl = $"/uploads/ticket_attachments/{fileName}"  // URL for accessing the file
+            };
+
+            return CreatedAtAction(nameof(GetTicketAttachment), new { id = ticketAttachmentDTO.TicketAttachID }, ticketAttachmentDTO);
         }
 
-        // GET: api/TicketAttachment/{id}
+        // GET: api/TicketAttachments/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketAttachmentDTOs>> GetTicketAttachment(int id)
         {
             var ticketAttachment = await _context.TicketAttachments.FindAsync(id);
+
             if (ticketAttachment == null)
             {
                 return NotFound();
@@ -65,31 +84,35 @@ namespace ProjectMohiDatabase.Controllers
             {
                 TicketAttachID = ticketAttachment.TicketAttachID,
                 TicketSupportID = ticketAttachment.TicketSupportID,
-                AttachFile = ticketAttachment.AttachFile
+                AttachFileUrl = $"/uploads/ticket_attachments/{ticketAttachment.AttachFile}"
             };
 
             return ticketAttachmentDTO;
         }
 
-        // Method to save the uploaded file to a directory
-        private async Task<string> SaveFile(IFormFile file)
+        // DELETE: api/TicketAttachments/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTicketAttachment(int id)
         {
-            var uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "images");
-            if (!Directory.Exists(uploadsFolder))
+            var ticketAttachment = await _context.TicketAttachments.FindAsync(id);
+            if (ticketAttachment == null)
             {
-                Directory.CreateDirectory(uploadsFolder);
+                return NotFound();
             }
 
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            // Delete the file from the server
+            var filePath = Path.Combine(_environment.WebRootPath, "uploads", "ticket_attachments", ticketAttachment.AttachFile);
+            if (System.IO.File.Exists(filePath))
             {
-                await file.CopyToAsync(fileStream);
+                System.IO.File.Delete(filePath);
             }
 
-            // Returning the file path relative to the uploads folder
-            return Path.Combine("images", fileName);
+            // Remove the record from the database
+            _context.TicketAttachments.Remove(ticketAttachment);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
     }
 }
+

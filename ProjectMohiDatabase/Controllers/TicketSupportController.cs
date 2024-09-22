@@ -38,7 +38,7 @@ namespace ProjectMohiDatabase.Controllers
                     {
                         TicketAttachID = ta.TicketAttachID,
                         TicketSupportID = ta.TicketSupportID,
-                        AttachFile = ta.AttachFile
+                        AttachFileUrl = ta.AttachFile
                     }).ToList(),
                     TicketSupportStatusHistories = ts.TicketSupportStatusHistories.Select(tsh => new TicketSupportStatusHistoryDTOs
                     {
@@ -76,7 +76,7 @@ namespace ProjectMohiDatabase.Controllers
                     {
                         TicketAttachID = ta.TicketAttachID,
                         TicketSupportID = ta.TicketSupportID,
-                        AttachFile = ta.AttachFile
+                        AttachFileUrl = ta.AttachFile,
                     }).ToList(),
                     TicketSupportStatusHistories = ts.TicketSupportStatusHistories.Select(tsh => new TicketSupportStatusHistoryDTOs
                     {

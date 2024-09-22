@@ -81,7 +81,7 @@ namespace ProjectMohiDatabase.Controllers
 
         // POST: api/TicketManagements
         [HttpPost]
-        public async Task<ActionResult<TicketManagement>> PostTicketManagement(TicketManagementCreateDTO ticketManagementCreateDTO)
+        public async Task<ActionResult<TicketManagement>> PostTicketManagement([FromForm]TicketManagementCreateDTO ticketManagementCreateDTO)
         {
             var ticketManagement = new TicketManagement
             {
@@ -98,7 +98,7 @@ namespace ProjectMohiDatabase.Controllers
 
         // PUT: api/TicketManagements/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTicketManagement(int id, TicketManagementCreateDTO ticketManagementCreateDTO)
+        public async Task<IActionResult> PutTicketManagement(int id, [FromForm] TicketManagementCreateDTO ticketManagementCreateDTO)
         {
             if (id != ticketManagementCreateDTO.TicketSupportID)
             {

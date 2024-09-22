@@ -9,7 +9,7 @@ namespace ProjectMohiDatabase.Models.DTOs
         public int TicketAttachID { get; set; }
         public int TicketSupportID { get; set; }
  
-        public string AttachFile { get; set; }
+        public string AttachFileUrl { get; set; }
     }
     public class TicketAttachmentCreateDTOs
     {
