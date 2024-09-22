@@ -1,0 +1,6 @@
+@ProjectMohiDatabase_HostAddress = http://localhost:5211
+
+GET {{ProjectMohiDatabase_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
