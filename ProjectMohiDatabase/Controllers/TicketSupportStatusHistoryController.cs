@@ -109,7 +109,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.TicketSupportStatusHistories.Remove(statusHistory);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(" TicketSupportStatusHistory Delete successfully.");
         }
 
         private bool TicketSupportStatusHistoryExists(int id, DateTime updatedAt)

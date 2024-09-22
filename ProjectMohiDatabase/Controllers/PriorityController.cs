@@ -135,7 +135,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.Priorities.Remove(priority);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("Priority Delete successfully.");
         }
 
         // Helper method to check if a priority exists

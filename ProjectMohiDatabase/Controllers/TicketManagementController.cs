@@ -133,7 +133,7 @@ namespace ProjectMohiDatabase.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(" TicketManagement Update successfully.");
         }
 
         // DELETE: api/TicketManagements/5
@@ -149,7 +149,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.TicketManagements.Remove(ticketManagement);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(" TicketManagement Delete successfully.");
         }
 
         private bool TicketManagementExists(int id)

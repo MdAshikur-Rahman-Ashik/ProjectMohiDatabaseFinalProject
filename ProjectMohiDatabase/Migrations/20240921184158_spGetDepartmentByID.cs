@@ -11,10 +11,10 @@ namespace ProjectMohiDatabase.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
           migrationBuilder.Sql(@"CREATE or alter PROCEDURE GetDepartmentByID
-                @DepartmentID INT = NULL -- Optional parameter
+                @DepartmentID INT = NULL
             AS
             BEGIN
-                -- If DepartmentID is provided, get the specific department
+               
                 IF @DepartmentID IS NOT NULL
                 BEGIN
                     SELECT DepartmentID, Name, Description
@@ -23,17 +23,19 @@ namespace ProjectMohiDatabase.Migrations
                 END
                 ELSE
                 BEGIN
-                    -- If DepartmentID is NULL, get all departments
+                    
                     SELECT DepartmentID, Name, Description
                     FROM Departments;
                 END
           END;");
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"DROP PROCEDURE IF EXISTS GetDepartmentByID");
+           
         }
     }
 }

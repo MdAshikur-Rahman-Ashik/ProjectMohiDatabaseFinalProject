@@ -67,6 +67,7 @@ namespace ProjectMohiDatabase.Controllers
             };
 
             return CreatedAtAction(nameof(GetTicketAttachment), new { id = ticketAttachmentDTO.TicketAttachID }, ticketAttachmentDTO);
+            
         }
 
         // GET: api/TicketAttachments/{id}
@@ -111,7 +112,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.TicketAttachments.Remove(ticketAttachment);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(" TicketAttachment Delete successfully.");
         }
     }
 }

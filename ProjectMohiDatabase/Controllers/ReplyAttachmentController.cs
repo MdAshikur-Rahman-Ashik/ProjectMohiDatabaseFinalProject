@@ -105,7 +105,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.ReplyAttachments.Remove(replyAttachment);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok("ReplyAttachment Delete successfully.");
         }
     }
 }

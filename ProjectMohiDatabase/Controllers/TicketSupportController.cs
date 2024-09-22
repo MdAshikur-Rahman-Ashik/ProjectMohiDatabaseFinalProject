@@ -175,7 +175,7 @@ namespace ProjectMohiDatabase.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(" TicketSupport Update successfully.");
         }
 
         // DELETE: api/TicketSupports/5
@@ -191,7 +191,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.TicketSupports.Remove(ticketSupport);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(" TicketSupport Delete successfully.");
         }
 
         private bool TicketSupportExists(int id)
