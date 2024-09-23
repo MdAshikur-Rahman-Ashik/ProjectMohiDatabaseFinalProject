@@ -84,53 +84,25 @@ namespace ProjectMohiDatabase.Controllers
 
 
         // POST: api/replies
-        //[HttpPost]
-        //public async Task<ActionResult<ReplyDTOs>> PostReply(ReplyDTOs replyDto)
-        //{
-        //    var reply = new Reply
-        //    {
-        //        TicketSupportID = replyDto.TicketSupportID,
-        //        PersonID = replyDto.PersonID,
-        //        Description = replyDto.Description,
-        //        UpdatedAt = DateTime.UtcNow // Set current time
-        //    };
-
-        //    _context.Replies.Add(reply);
-        //    await _context.SaveChangesAsync();
-
-        //    replyDto.ReplyID = reply.ReplyID; // Set the ID from the new record
-
-        //    return CreatedAtAction(nameof(GetReply), new { id = reply.ReplyID }, replyDto);
-        //}
         [HttpPost]
-       
         public async Task<ActionResult<ReplyDTOs>> PostReply(ReplyDTOs replyDto)
         {
-            // Check if the PersonID exists in the Persons table
-            var personExists = await _context.Persons.AnyAsync(p => p.PersonID == replyDto.PersonID);
-
-            if (!personExists)
+            var reply = new Reply
             {
-                return BadRequest("The specified PersonID does not exist.");
-            }
-
-            // Now proceed to insert the reply
-            var parameters = new[]
-            {
-                new SqlParameter("@TicketSupportID", replyDto.TicketSupportID),
-                new SqlParameter("@PersonID", replyDto.PersonID),
-                new SqlParameter("@Description", replyDto.Description),
-                new SqlParameter("@ReplyID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                TicketSupportID = replyDto.TicketSupportID,
+                PersonID = replyDto.PersonID,
+                Description = replyDto.Description,
+                UpdatedAt = DateTime.UtcNow // Set current time
             };
 
-            await _context.Database.ExecuteSqlRawAsync("EXEC InsertReply2 @TicketSupportID, @PersonID, @Description, @ReplyID OUTPUT", parameters);
+            _context.Replies.Add(reply);
+            await _context.SaveChangesAsync();
 
-            var newReplyID = (int)parameters[3].Value;
-            replyDto.ReplyID = newReplyID;
+            replyDto.ReplyID = reply.ReplyID; // Set the ID from the new record
 
-            return CreatedAtAction(nameof(GetReply), new { id = newReplyID }, replyDto);
+            return CreatedAtAction(nameof(GetReply), new { id = reply.ReplyID }, replyDto);
         }
-
+        
 
         // PUT: api/replies/{id}
         [HttpPut("{id}")]
