@@ -14,5 +14,6 @@ namespace ProjectMohiDatabase.Models
         public string Description { get; set; }
 
         public virtual ICollection<TicketSupport> TicketSupports { get; set; }
+        
     }
 }
