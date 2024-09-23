@@ -59,18 +59,27 @@ namespace ProjectMohiDatabase.Controllers
 
         // POST: api/priorities
         [HttpPost]
-        public async Task<ActionResult<PriorityDTOs>> PostPriority([FromForm] PriorityDTOs priorityDto)
+        public async Task<ActionResult<PriorityDTOs>> PostPriority( PriorityDTOs priorityDto)
         {
+            // Validate the input
+            if (string.IsNullOrWhiteSpace(priorityDto.PriorityName))
+            {
+                return BadRequest("Priority name is required.");
+            }
+
             var priority = new Priority
             {
                 PriorityName = priorityDto.PriorityName
             };
 
+            // Add to the context
             _context.Priorities.Add(priority);
             await _context.SaveChangesAsync();
 
-            priorityDto.PriorityID = priority.PriorityID; // Set the ID from the new record
+            // Set the ID from the new record
+            priorityDto.PriorityID = priority.PriorityID;
 
+            // Return the created priority with a 201 status
             return CreatedAtAction(nameof(GetPriority), new { id = priority.PriorityID }, priorityDto);
         }
 

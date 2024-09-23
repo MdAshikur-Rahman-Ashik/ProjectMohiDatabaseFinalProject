@@ -26,7 +26,7 @@ namespace ProjectMohiDatabase.Controllers
                 .Select(ts => new TicketSupportDTOs
                 {
                     TicketSupportID = ts.TicketSupportID,
-                    PersonID = ts.PersonID,
+                    ApplicationUserID = ts.ApplicationUserID,
                     PackageID = ts.PackageID,
                     StatusID = ts.StatusID,
                     Email = ts.Email,
@@ -60,11 +60,11 @@ namespace ProjectMohiDatabase.Controllers
         public async Task<ActionResult<TicketSupportDTOs>> GetTicketSupport(int id)
         {
             var ticketSupportData = await _context.TicketSupports
-                .FromSqlInterpolated($"EXEC GetTicketSupportByID @TicketSupportID = {id}")
+                .Where(ts => ts.TicketSupportID == id)
                 .Select(ts => new TicketSupportDTOs
                 {
                     TicketSupportID = ts.TicketSupportID,
-                    PersonID = ts.PersonID,
+                    ApplicationUserID = ts.ApplicationUserID,
                     PackageID = ts.PackageID,
                     StatusID = ts.StatusID,
                     Email = ts.Email,
@@ -101,6 +101,7 @@ namespace ProjectMohiDatabase.Controllers
         }
 
 
+
         // POST: api/TicketSupports
         [HttpPost]
         public async Task<ActionResult<TicketSupport>> PostTicketSupport( [FromForm]TicketSupportCreateDTO ticketSupportCreateDTO)
@@ -115,7 +116,7 @@ namespace ProjectMohiDatabase.Controllers
             // Proceed with the insertion
             var ticketSupport = new TicketSupport
             {
-                PersonID = ticketSupportCreateDTO.PersonID,
+                ApplicationUserID = ticketSupportCreateDTO.ApplicationUserID,
                 PackageID = ticketSupportCreateDTO.PackageID,
                 StatusID = ticketSupportCreateDTO.StatusID,
                 Email = ticketSupportCreateDTO.Email,
@@ -136,19 +137,16 @@ namespace ProjectMohiDatabase.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTicketSupport(int id, [FromForm] TicketSupportCreateDTO ticketSupportCreateDTO)
         {
-            if (id != ticketSupportCreateDTO.PersonID)
-            {
-                return BadRequest();
-            }
-
+            // Ensure that the `id` is compared to `TicketSupportID` and not `ApplicationUserID`
             var ticketSupport = await _context.TicketSupports.FindAsync(id);
 
             if (ticketSupport == null)
             {
-                return NotFound();
+                return NotFound($"TicketSupport with ID {id} not found.");
             }
 
-            ticketSupport.PersonID = ticketSupportCreateDTO.PersonID;
+            // Update the fields with new values from the DTO
+            ticketSupport.ApplicationUserID = ticketSupportCreateDTO.ApplicationUserID;
             ticketSupport.PackageID = ticketSupportCreateDTO.PackageID;
             ticketSupport.StatusID = ticketSupportCreateDTO.StatusID;
             ticketSupport.Email = ticketSupportCreateDTO.Email;
@@ -157,17 +155,18 @@ namespace ProjectMohiDatabase.Controllers
             ticketSupport.Subject = ticketSupportCreateDTO.Subject;
             ticketSupport.Description = ticketSupportCreateDTO.Description;
 
+            // Mark the entity as modified
             _context.Entry(ticketSupport).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();  // Save changes to the database
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TicketSupportExists(id))
+                if (!TicketSupportExists(id))  // Check if the TicketSupport still exists
                 {
-                    return NotFound();
+                    return NotFound($"TicketSupport with ID {id} no longer exists.");
                 }
                 else
                 {
@@ -175,7 +174,7 @@ namespace ProjectMohiDatabase.Controllers
                 }
             }
 
-            return Ok(" TicketSupport Update successfully.");
+            return Ok("TicketSupport updated successfully.");
         }
 
         // DELETE: api/TicketSupports/5

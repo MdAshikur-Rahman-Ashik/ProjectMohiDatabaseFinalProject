@@ -12,6 +12,18 @@ namespace ProjectMohiDatabase.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "ApplicationUsers",
+                columns: table => new
+                {
+                    ApplicationUserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUsers", x => x.ApplicationUserID);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Departments",
                 columns: table => new
                 {
@@ -40,22 +52,6 @@ namespace ProjectMohiDatabase.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Packages", x => x.PackageID);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Persons",
-                columns: table => new
-                {
-                    PersonID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Persons", x => x.PersonID);
                 });
 
             migrationBuilder.CreateTable(
@@ -90,7 +86,7 @@ namespace ProjectMohiDatabase.Migrations
                 {
                     TicketSupportID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     PackageID = table.Column<int>(type: "int", nullable: false),
                     StatusID = table.Column<int>(type: "int", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
@@ -103,6 +99,11 @@ namespace ProjectMohiDatabase.Migrations
                 {
                     table.PrimaryKey("PK_TicketSupports", x => x.TicketSupportID);
                     table.ForeignKey(
+                        name: "FK_TicketSupports_ApplicationUsers_ApplicationUserID",
+                        column: x => x.ApplicationUserID,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "ApplicationUserID");
+                    table.ForeignKey(
                         name: "FK_TicketSupports_Departments_DepartmentID",
                         column: x => x.DepartmentID,
                         principalTable: "Departments",
@@ -112,11 +113,6 @@ namespace ProjectMohiDatabase.Migrations
                         column: x => x.PackageID,
                         principalTable: "Packages",
                         principalColumn: "PackageID");
-                    table.ForeignKey(
-                        name: "FK_TicketSupports_Persons_PersonID",
-                        column: x => x.PersonID,
-                        principalTable: "Persons",
-                        principalColumn: "PersonID");
                     table.ForeignKey(
                         name: "FK_TicketSupports_Priorities_PriorityID",
                         column: x => x.PriorityID,
@@ -136,7 +132,7 @@ namespace ProjectMohiDatabase.Migrations
                     ReplyID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TicketSupportID = table.Column<int>(type: "int", nullable: false),
-                    PersonID = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserID = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -144,10 +140,10 @@ namespace ProjectMohiDatabase.Migrations
                 {
                     table.PrimaryKey("PK_Replies", x => x.ReplyID);
                     table.ForeignKey(
-                        name: "FK_Replies_Persons_PersonID",
-                        column: x => x.PersonID,
-                        principalTable: "Persons",
-                        principalColumn: "PersonID",
+                        name: "FK_Replies_ApplicationUsers_ApplicationUserID",
+                        column: x => x.ApplicationUserID,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "ApplicationUserID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Replies_TicketSupports_TicketSupportID",
@@ -184,16 +180,16 @@ namespace ProjectMohiDatabase.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TicketSupportID = table.Column<int>(type: "int", nullable: false),
                     AssignedTo = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    ManagedByPersonID = table.Column<int>(type: "int", nullable: false)
+                    ManagedByApplicationUserID = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TicketManagements", x => x.TicketManagementID);
                     table.ForeignKey(
-                        name: "FK_TicketManagements_Persons_ManagedByPersonID",
-                        column: x => x.ManagedByPersonID,
-                        principalTable: "Persons",
-                        principalColumn: "PersonID",
+                        name: "FK_TicketManagements_ApplicationUsers_ManagedByApplicationUserID",
+                        column: x => x.ManagedByApplicationUserID,
+                        principalTable: "ApplicationUsers",
+                        principalColumn: "ApplicationUserID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_TicketManagements_TicketSupports_TicketSupportID",
@@ -248,9 +244,9 @@ namespace ProjectMohiDatabase.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Replies_PersonID",
+                name: "IX_Replies_ApplicationUserID",
                 table: "Replies",
-                column: "PersonID");
+                column: "ApplicationUserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Replies_TicketSupportID",
@@ -268,14 +264,19 @@ namespace ProjectMohiDatabase.Migrations
                 column: "TicketSupportID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TicketManagements_ManagedByPersonID",
+                name: "IX_TicketManagements_ManagedByApplicationUserID",
                 table: "TicketManagements",
-                column: "ManagedByPersonID");
+                column: "ManagedByApplicationUserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TicketManagements_TicketSupportID",
                 table: "TicketManagements",
                 column: "TicketSupportID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TicketSupports_ApplicationUserID",
+                table: "TicketSupports",
+                column: "ApplicationUserID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TicketSupports_DepartmentID",
@@ -286,11 +287,6 @@ namespace ProjectMohiDatabase.Migrations
                 name: "IX_TicketSupports_PackageID",
                 table: "TicketSupports",
                 column: "PackageID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TicketSupports_PersonID",
-                table: "TicketSupports",
-                column: "PersonID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TicketSupports_PriorityID",
@@ -335,13 +331,13 @@ namespace ProjectMohiDatabase.Migrations
                 name: "TicketSupports");
 
             migrationBuilder.DropTable(
+                name: "ApplicationUsers");
+
+            migrationBuilder.DropTable(
                 name: "Departments");
 
             migrationBuilder.DropTable(
                 name: "Packages");
-
-            migrationBuilder.DropTable(
-                name: "Persons");
 
             migrationBuilder.DropTable(
                 name: "Priorities");

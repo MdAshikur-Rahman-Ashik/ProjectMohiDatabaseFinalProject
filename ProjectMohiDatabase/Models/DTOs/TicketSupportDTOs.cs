@@ -4,7 +4,7 @@
     {
       
             public int TicketSupportID { get; set; }
-            public int PersonID { get; set; }
+            public string ApplicationUserID { get; set; }
             public int PackageID { get; set; }
             public int StatusID { get; set; }
             public string Email { get; set; }
@@ -22,7 +22,7 @@
 
     public class TicketSupportCreateDTO
     {
-        public int PersonID { get; set; }
+        public string ApplicationUserID { get; set; }
         public int PackageID { get; set; }
         public int StatusID { get; set; }
         public string Email { get; set; }

@@ -13,9 +13,9 @@ namespace ProjectMohiDatabase.Models
         public int TicketSupportID { get; set; }
         public virtual TicketSupport TicketSupport { get; set; }
 
-        [ForeignKey(nameof(Person))]
-        public int PersonID { get; set; }
-        public virtual Person Person { get; set; }
+        [ForeignKey(nameof(ApplicationUser))]
+        public string ApplicationUserID { get; set; }
+        public virtual ApplicationUser  ApplicationUser { get; set; }
 
         public string Description { get; set; }
 

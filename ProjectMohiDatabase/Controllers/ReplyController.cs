@@ -31,12 +31,12 @@ namespace ProjectMohiDatabase.Controllers
         {
             var replies = await _context.Replies
                 .Include(r => r.TicketSupport) // Include related entities if necessary
-            .Include(r => r.Person)
+            .Include(r => r.ApplicationUser)
                 .Select(r => new ReplyDTOs
                 {
                     ReplyID = r.ReplyID,
                     TicketSupportID = r.TicketSupportID,
-                    PersonID = r.PersonID,
+                    ApplicationUserID = r.ApplicationUserID,
                     Description = r.Description,
                     UpdatedAt = r.UpdatedAt,
                     ReplyAttachmentIds = r.ReplyAttachments.Select(a => a.ReplyAttachID).ToList() // Assuming there's an Id property in ReplyAttachment
@@ -50,7 +50,10 @@ namespace ProjectMohiDatabase.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ReplyDTOs>> GetReply(int id)
         {
-            var replyDTO = new ReplyDTOs();
+            var replyDTO = new ReplyDTOs
+            {
+                ReplyAttachmentIds = new List<int>()
+            };
 
             using (var connection = new SqlConnection(_configuration.GetConnectionString("con")))
             {
@@ -62,6 +65,7 @@ namespace ProjectMohiDatabase.Controllers
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
+                        // Reading Reply data
                         if (!reader.HasRows)
                         {
                             return NotFound($"Reply with ID {id} not found.");
@@ -71,9 +75,18 @@ namespace ProjectMohiDatabase.Controllers
                         {
                             replyDTO.ReplyID = reader.GetInt32(reader.GetOrdinal("ReplyID"));
                             replyDTO.TicketSupportID = reader.GetInt32(reader.GetOrdinal("TicketSupportID"));
-                            replyDTO.PersonID = reader.GetInt32(reader.GetOrdinal("PersonID"));
+                            replyDTO.ApplicationUserID = reader.GetString(reader.GetOrdinal("ApplicationUserID"));
                             replyDTO.Description = reader.GetString(reader.GetOrdinal("Description"));
                             replyDTO.UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt"));
+                        }
+
+                        // Move to the next result set (for ReplyAttachments if exists)
+                        if (await reader.NextResultAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                replyDTO.ReplyAttachmentIds.Add(reader.GetInt32(reader.GetOrdinal("ReplyAttachmentID")));
+                            }
                         }
                     }
                 }
@@ -83,6 +96,7 @@ namespace ProjectMohiDatabase.Controllers
         }
 
 
+
         // POST: api/replies
         [HttpPost]
         public async Task<ActionResult<ReplyDTOs>> PostReply(ReplyDTOs replyDto)
@@ -90,7 +104,7 @@ namespace ProjectMohiDatabase.Controllers
             var reply = new Reply
             {
                 TicketSupportID = replyDto.TicketSupportID,
-                PersonID = replyDto.PersonID,
+                ApplicationUserID = replyDto.ApplicationUserID,
                 Description = replyDto.Description,
                 UpdatedAt = DateTime.UtcNow // Set current time
             };

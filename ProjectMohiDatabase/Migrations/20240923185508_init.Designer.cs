@@ -12,8 +12,8 @@ using ProjectMohiDatabase.Models.DAL;
 namespace ProjectMohiDatabase.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240922092510_GetTicketSupportStatusHistory")]
-    partial class GetTicketSupportStatusHistory
+    [Migration("20240923185508_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,20 @@ namespace ProjectMohiDatabase.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("ProjectMohiDatabase.Models.ApplicationUser", b =>
+                {
+                    b.Property<string>("ApplicationUserID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ApplicationUserID");
+
+                    b.ToTable("ApplicationUsers");
+                });
 
             modelBuilder.Entity("ProjectMohiDatabase.Models.Department", b =>
                 {
@@ -80,39 +94,6 @@ namespace ProjectMohiDatabase.Migrations
                     b.ToTable("Packages");
                 });
 
-            modelBuilder.Entity("ProjectMohiDatabase.Models.Person", b =>
-                {
-                    b.Property<int>("PersonID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PersonID"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
-
-                    b.HasKey("PersonID");
-
-                    b.ToTable("Persons");
-                });
-
             modelBuilder.Entity("ProjectMohiDatabase.Models.Priority", b =>
                 {
                     b.Property<int>("PriorityID")
@@ -139,12 +120,13 @@ namespace ProjectMohiDatabase.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReplyID"));
 
+                    b.Property<string>("ApplicationUserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
 
                     b.Property<int>("TicketSupportID")
                         .HasColumnType("int");
@@ -154,7 +136,7 @@ namespace ProjectMohiDatabase.Migrations
 
                     b.HasKey("ReplyID");
 
-                    b.HasIndex("PersonID");
+                    b.HasIndex("ApplicationUserID");
 
                     b.HasIndex("TicketSupportID");
 
@@ -218,15 +200,16 @@ namespace ProjectMohiDatabase.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
-                    b.Property<int>("ManagedByPersonID")
-                        .HasColumnType("int");
+                    b.Property<string>("ManagedByApplicationUserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("TicketSupportID")
                         .HasColumnType("int");
 
                     b.HasKey("TicketManagementID");
 
-                    b.HasIndex("ManagedByPersonID");
+                    b.HasIndex("ManagedByApplicationUserID");
 
                     b.HasIndex("TicketSupportID");
 
@@ -259,6 +242,10 @@ namespace ProjectMohiDatabase.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TicketSupportID"));
 
+                    b.Property<string>("ApplicationUserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("DepartmentID")
                         .HasColumnType("int");
 
@@ -275,9 +262,6 @@ namespace ProjectMohiDatabase.Migrations
                     b.Property<int>("PackageID")
                         .HasColumnType("int");
 
-                    b.Property<int>("PersonID")
-                        .HasColumnType("int");
-
                     b.Property<int>("PriorityID")
                         .HasColumnType("int");
 
@@ -291,11 +275,11 @@ namespace ProjectMohiDatabase.Migrations
 
                     b.HasKey("TicketSupportID");
 
+                    b.HasIndex("ApplicationUserID");
+
                     b.HasIndex("DepartmentID");
 
                     b.HasIndex("PackageID");
-
-                    b.HasIndex("PersonID");
 
                     b.HasIndex("PriorityID");
 
@@ -327,9 +311,9 @@ namespace ProjectMohiDatabase.Migrations
 
             modelBuilder.Entity("ProjectMohiDatabase.Models.Reply", b =>
                 {
-                    b.HasOne("ProjectMohiDatabase.Models.Person", "Person")
+                    b.HasOne("ProjectMohiDatabase.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("Replies")
-                        .HasForeignKey("PersonID")
+                        .HasForeignKey("ApplicationUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -339,7 +323,7 @@ namespace ProjectMohiDatabase.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Person");
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("TicketSupport");
                 });
@@ -368,9 +352,9 @@ namespace ProjectMohiDatabase.Migrations
 
             modelBuilder.Entity("ProjectMohiDatabase.Models.TicketManagement", b =>
                 {
-                    b.HasOne("ProjectMohiDatabase.Models.Person", "Person")
+                    b.HasOne("ProjectMohiDatabase.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("TicketManagements")
-                        .HasForeignKey("ManagedByPersonID")
+                        .HasForeignKey("ManagedByApplicationUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -380,13 +364,19 @@ namespace ProjectMohiDatabase.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Person");
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("TicketSupport");
                 });
 
             modelBuilder.Entity("ProjectMohiDatabase.Models.TicketSupport", b =>
                 {
+                    b.HasOne("ProjectMohiDatabase.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany("TicketSupports")
+                        .HasForeignKey("ApplicationUserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("ProjectMohiDatabase.Models.Department", "Department")
                         .WithMany("TicketSupports")
                         .HasForeignKey("DepartmentID")
@@ -396,12 +386,6 @@ namespace ProjectMohiDatabase.Migrations
                     b.HasOne("ProjectMohiDatabase.Models.Package", "Package")
                         .WithMany("TicketSupports")
                         .HasForeignKey("PackageID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("ProjectMohiDatabase.Models.Person", "Person")
-                        .WithMany("TicketSupports")
-                        .HasForeignKey("PersonID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -417,11 +401,11 @@ namespace ProjectMohiDatabase.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.Navigation("ApplicationUser");
+
                     b.Navigation("Department");
 
                     b.Navigation("Package");
-
-                    b.Navigation("Person");
 
                     b.Navigation("Priority");
 
@@ -447,6 +431,15 @@ namespace ProjectMohiDatabase.Migrations
                     b.Navigation("TicketSupport");
                 });
 
+            modelBuilder.Entity("ProjectMohiDatabase.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Replies");
+
+                    b.Navigation("TicketManagements");
+
+                    b.Navigation("TicketSupports");
+                });
+
             modelBuilder.Entity("ProjectMohiDatabase.Models.Department", b =>
                 {
                     b.Navigation("TicketSupports");
@@ -454,15 +447,6 @@ namespace ProjectMohiDatabase.Migrations
 
             modelBuilder.Entity("ProjectMohiDatabase.Models.Package", b =>
                 {
-                    b.Navigation("TicketSupports");
-                });
-
-            modelBuilder.Entity("ProjectMohiDatabase.Models.Person", b =>
-                {
-                    b.Navigation("Replies");
-
-                    b.Navigation("TicketManagements");
-
                     b.Navigation("TicketSupports");
                 });
 

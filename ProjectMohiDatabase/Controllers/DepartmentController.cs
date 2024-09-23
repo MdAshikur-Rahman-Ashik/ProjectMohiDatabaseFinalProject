@@ -65,46 +65,24 @@ namespace ProjectMohiDatabase.Controllers
 
 
 
-        // POST: api/departments
-        //[HttpPost]
-        //public async Task<ActionResult<DepartmentDTOs>> PostDepartment([FromForm] DepartmentDTOs departmentDto)
-        //{
-        //    var department = new Department
-        //    {
-        //        Name = departmentDto.Name,
-        //        Description = departmentDto.Description
-        //    };
-
-        //    _context.Departments.Add(department);
-        //    await _context.SaveChangesAsync();
-
-        //    departmentDto.DepartmentID = department.DepartmentID; // Set the ID from the new record
-
-        //    return CreatedAtAction(nameof(GetDepartment), new { id = department.DepartmentID }, departmentDto);
-        //}
-        [HttpPost]
+        //POST: api/departments
+       [HttpPost]
         public async Task<ActionResult<DepartmentDTOs>> PostDepartment([FromForm] DepartmentDTOs departmentDto)
         {
-            // Declare a variable to hold the new DepartmentID
-            int newDepartmentID;
-
-            // Call the stored procedure
-            var parameters = new[]
+            var department = new Department
             {
-                new SqlParameter("@Name", departmentDto.Name),
-                new SqlParameter("@Description", departmentDto.Description),
-                new SqlParameter("@DepartmentID", SqlDbType.Int) { Direction = ParameterDirection.Output }
+                Name = departmentDto.Name,
+                Description = departmentDto.Description
             };
 
-            await _context.Database.ExecuteSqlRawAsync("EXEC InsertDepartment @Name, @Description, @DepartmentID OUTPUT", parameters);
+            _context.Departments.Add(department);
+            await _context.SaveChangesAsync();
 
-            // Get the new DepartmentID from the output parameter
-            newDepartmentID = (int)parameters[2].Value;
+            departmentDto.DepartmentID = department.DepartmentID; // Set the ID from the new record
 
-            departmentDto.DepartmentID = newDepartmentID; // Set the ID from the new record
-
-            return CreatedAtAction(nameof(GetDepartment), new { id = newDepartmentID }, departmentDto);
+            return CreatedAtAction(nameof(GetDepartment), new { id = department.DepartmentID }, departmentDto);
         }
+
 
 
         // PUT: api/departments/{id}

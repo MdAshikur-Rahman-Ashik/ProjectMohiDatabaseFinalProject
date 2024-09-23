@@ -23,9 +23,6 @@ namespace ProjectMohiDatabase.Controllers
             _configuration = configuration;
         }
 
-
-
-
         // GET: api/TicketManagements
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TicketManagementDTOs>>> GetTicketManagements()
@@ -36,7 +33,7 @@ namespace ProjectMohiDatabase.Controllers
                     TicketManagementID = tm.TicketManagementID,
                     TicketSupportID = tm.TicketSupportID,
                     AssignedTo = tm.AssignedTo,
-                    ManagedByPersonID = tm.ManagedByPersonID
+                    ManagedByApplicationUserID = tm.ManagedByApplicationUserID
                 }).ToListAsync();
         }
 
@@ -49,7 +46,7 @@ namespace ProjectMohiDatabase.Controllers
             // Fetch connection string from configuration
             string connectionString = _configuration.GetConnectionString("con");
 
-            using (var connection = new SqlConnection(connectionString))  // Pass actual connection string
+            using (var connection = new SqlConnection(connectionString))
             {
                 await connection.OpenAsync();
                 using (var command = new SqlCommand("GetTicketManagementByID", connection))
@@ -69,7 +66,7 @@ namespace ProjectMohiDatabase.Controllers
                             ticketManagementDTO.TicketManagementID = reader.GetInt32(reader.GetOrdinal("TicketManagementID"));
                             ticketManagementDTO.TicketSupportID = reader.GetInt32(reader.GetOrdinal("TicketSupportID"));
                             ticketManagementDTO.AssignedTo = reader.GetString(reader.GetOrdinal("AssignedTo"));
-                            ticketManagementDTO.ManagedByPersonID = reader.GetInt32(reader.GetOrdinal("ManagedByPersonID"));
+                            ticketManagementDTO.ManagedByApplicationUserID = reader.GetString(reader.GetOrdinal("ManagedByApplicationUserID")); // Changed to string
                         }
                     }
                 }
@@ -81,13 +78,13 @@ namespace ProjectMohiDatabase.Controllers
 
         // POST: api/TicketManagements
         [HttpPost]
-        public async Task<ActionResult<TicketManagement>> PostTicketManagement([FromForm]TicketManagementCreateDTO ticketManagementCreateDTO)
+        public async Task<ActionResult<TicketManagement>> PostTicketManagement([FromBody] TicketManagementCreateDTO ticketManagementCreateDTO)
         {
             var ticketManagement = new TicketManagement
             {
                 TicketSupportID = ticketManagementCreateDTO.TicketSupportID,
                 AssignedTo = ticketManagementCreateDTO.AssignedTo,
-                ManagedByPersonID = ticketManagementCreateDTO.ManagedByPersonID
+                ManagedByApplicationUserID = ticketManagementCreateDTO.ManagedByApplicationUserID
             };
 
             _context.TicketManagements.Add(ticketManagement);
@@ -98,7 +95,7 @@ namespace ProjectMohiDatabase.Controllers
 
         // PUT: api/TicketManagements/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTicketManagement(int id, [FromForm] TicketManagementCreateDTO ticketManagementCreateDTO)
+        public async Task<IActionResult> PutTicketManagement(int id, [FromBody] TicketManagementCreateDTO ticketManagementCreateDTO)
         {
             if (id != ticketManagementCreateDTO.TicketSupportID)
             {
@@ -113,7 +110,7 @@ namespace ProjectMohiDatabase.Controllers
             }
 
             ticketManagement.AssignedTo = ticketManagementCreateDTO.AssignedTo;
-            ticketManagement.ManagedByPersonID = ticketManagementCreateDTO.ManagedByPersonID;
+            ticketManagement.ManagedByApplicationUserID = ticketManagementCreateDTO.ManagedByApplicationUserID;
 
             _context.Entry(ticketManagement).State = EntityState.Modified;
 
@@ -133,7 +130,7 @@ namespace ProjectMohiDatabase.Controllers
                 }
             }
 
-            return Ok(" TicketManagement Update successfully.");
+            return Ok("Ticket Management updated successfully.");
         }
 
         // DELETE: api/TicketManagements/5
@@ -149,7 +146,7 @@ namespace ProjectMohiDatabase.Controllers
             _context.TicketManagements.Remove(ticketManagement);
             await _context.SaveChangesAsync();
 
-            return Ok(" TicketManagement Delete successfully.");
+            return Ok("Ticket Management deleted successfully.");
         }
 
         private bool TicketManagementExists(int id)

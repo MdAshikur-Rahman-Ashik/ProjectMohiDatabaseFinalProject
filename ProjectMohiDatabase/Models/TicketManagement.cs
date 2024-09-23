@@ -16,8 +16,8 @@ namespace ProjectMohiDatabase.Models
         [StringLength(250)]
         public string AssignedTo { get; set; }
 
-        [ForeignKey(nameof(Person))]
-        public int ManagedByPersonID { get; set; }
-        public virtual Person Person { get; set; }
+        [ForeignKey(nameof(ApplicationUser))]
+        public string ManagedByApplicationUserID { get; set; }
+        public virtual ApplicationUser  ApplicationUser { get; set; }
     }
 }
