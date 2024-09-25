@@ -41,35 +41,25 @@ namespace ProjectMohiDatabase.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketStatusDTOs>> GetTicketStatus(int id)
         {
-            var ticketStatusDTO = new TicketStatusDTOs();
-            string connectionString = _configuration.GetConnectionString("con");
+            // Fetch the TicketStatus data from the database
+            var ticketStatus = await _context.TicketStatuses
+                .FirstOrDefaultAsync(ts => ts.StatusID == id);
 
-            using (var connection = new SqlConnection(connectionString))
+            if (ticketStatus == null)
             {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand("GetTicketStatusByID", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@StatusID", id);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        if (!reader.HasRows)
-                        {
-                            return NotFound(); // Return 404 if no records found
-                        }
-
-                        if (await reader.ReadAsync())
-                        {
-                            ticketStatusDTO.StatusID = reader.GetInt32(reader.GetOrdinal("StatusID"));
-                            ticketStatusDTO.StatusName = reader.GetString(reader.GetOrdinal("StatusName"));
-                        }
-                    }
-                }
+                return NotFound($"Ticket Status with ID {id} not found.");
             }
 
-            return Ok(ticketStatusDTO); // Return the populated DTO
+            // Map the entity to the DTO
+            var ticketStatusDTO = new TicketStatusDTOs
+            {
+                StatusID = ticketStatus.StatusID,
+                StatusName = ticketStatus.StatusName
+            };
+
+            return Ok(ticketStatusDTO);
         }
+
 
         // POST: api/TicketStatuses
         [HttpPost]

@@ -41,39 +41,27 @@ namespace ProjectMohiDatabase.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketManagementDTOs>> GetTicketManagement(int id)
         {
-            var ticketManagementDTO = new TicketManagementDTOs();
+            // Fetch the TicketManagement data from the database
+            var ticketManagement = await _context.TicketManagements
+                .FirstOrDefaultAsync(tm => tm.TicketManagementID == id);
 
-            // Fetch connection string from configuration
-            string connectionString = _configuration.GetConnectionString("con");
-
-            using (var connection = new SqlConnection(connectionString))
+            if (ticketManagement == null)
             {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand("GetTicketManagementByID", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@TicketManagementID", id);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        if (!reader.HasRows)
-                        {
-                            return NotFound();
-                        }
-
-                        if (await reader.ReadAsync())
-                        {
-                            ticketManagementDTO.TicketManagementID = reader.GetInt32(reader.GetOrdinal("TicketManagementID"));
-                            ticketManagementDTO.TicketSupportID = reader.GetInt32(reader.GetOrdinal("TicketSupportID"));
-                            ticketManagementDTO.AssignedTo = reader.GetString(reader.GetOrdinal("AssignedTo"));
-                            ticketManagementDTO.ManagedByApplicationUserID = reader.GetString(reader.GetOrdinal("ManagedByApplicationUserID")); // Changed to string
-                        }
-                    }
-                }
+                return NotFound($"Ticket Management with ID {id} not found.");
             }
+
+            // Map the entity to the DTO
+            var ticketManagementDTO = new TicketManagementDTOs
+            {
+                TicketManagementID = ticketManagement.TicketManagementID,
+                TicketSupportID = ticketManagement.TicketSupportID,
+                AssignedTo = ticketManagement.AssignedTo,
+                ManagedByApplicationUserID = ticketManagement.ManagedByApplicationUserID
+            };
 
             return Ok(ticketManagementDTO);
         }
+
 
 
         // POST: api/TicketManagements

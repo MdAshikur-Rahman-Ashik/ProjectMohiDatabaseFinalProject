@@ -12,8 +12,8 @@ using ProjectMohiDatabase.Models.DAL;
 namespace ProjectMohiDatabase.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240923185517_SpALl")]
-    partial class SpALl
+    [Migration("20240925122021_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -298,6 +298,9 @@ namespace ProjectMohiDatabase.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("TicketSupportID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TicketSupportStatusHistoryID")
                         .HasColumnType("int");
 
                     b.HasKey("UpdatedAt");

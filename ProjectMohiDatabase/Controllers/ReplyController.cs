@@ -50,50 +50,29 @@ namespace ProjectMohiDatabase.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ReplyDTOs>> GetReply(int id)
         {
+            var reply = await _context.Replies
+                .Include(r => r.ReplyAttachments) // Include ReplyAttachments
+                .FirstOrDefaultAsync(r => r.ReplyID == id);
+
+            if (reply == null)
+            {
+                return NotFound($"Reply with ID {id} not found.");
+            }
+
+            // Map the Reply to ReplyDTOs
             var replyDTO = new ReplyDTOs
             {
-                ReplyAttachmentIds = new List<int>()
+                ReplyID = reply.ReplyID,
+                TicketSupportID = reply.TicketSupportID,
+                ApplicationUserID = reply.ApplicationUserID,
+                Description = reply.Description,
+                UpdatedAt = reply.UpdatedAt,
+                ReplyAttachmentIds = reply.ReplyAttachments.Select(ra => ra.ReplyAttachID).ToList() // Map attachment IDs
             };
-
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("con")))
-            {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand("GetReplyByID", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@ReplyID", id);
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        // Reading Reply data
-                        if (!reader.HasRows)
-                        {
-                            return NotFound($"Reply with ID {id} not found.");
-                        }
-
-                        if (await reader.ReadAsync())
-                        {
-                            replyDTO.ReplyID = reader.GetInt32(reader.GetOrdinal("ReplyID"));
-                            replyDTO.TicketSupportID = reader.GetInt32(reader.GetOrdinal("TicketSupportID"));
-                            replyDTO.ApplicationUserID = reader.GetString(reader.GetOrdinal("ApplicationUserID"));
-                            replyDTO.Description = reader.GetString(reader.GetOrdinal("Description"));
-                            replyDTO.UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt"));
-                        }
-
-                        // Move to the next result set (for ReplyAttachments if exists)
-                        if (await reader.NextResultAsync())
-                        {
-                            while (await reader.ReadAsync())
-                            {
-                                replyDTO.ReplyAttachmentIds.Add(reader.GetInt32(reader.GetOrdinal("ReplyAttachmentID")));
-                            }
-                        }
-                    }
-                }
-            }
 
             return Ok(replyDTO);
         }
+
 
 
 

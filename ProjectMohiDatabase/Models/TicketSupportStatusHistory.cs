@@ -5,6 +5,7 @@ namespace ProjectMohiDatabase.Models
 {
     public class TicketSupportStatusHistory
     {
+        public int TicketSupportStatusHistoryID { get; set; }
         [ForeignKey(nameof(TicketSupport))]
         public int TicketSupportID { get; set; }
         public virtual TicketSupport TicketSupport { get; set; }

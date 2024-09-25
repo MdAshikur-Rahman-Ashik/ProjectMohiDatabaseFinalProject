@@ -12,110 +12,90 @@ namespace ProjectMohiDatabase.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TicketSupportStatusHistoriesController : ControllerBase
+    public class TicketSupportStatusHistoryController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly IConfiguration _configuration;
 
-        public TicketSupportStatusHistoriesController(AppDbContext context, IConfiguration configuration)
+        public TicketSupportStatusHistoryController(AppDbContext context)
         {
             _context = context;
-            _configuration = configuration;
         }
 
-
-        // GET: api/TicketSupportStatusHistories
+        // GET: api/TicketSupportStatusHistory
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TicketSupportStatusHistoryDTOs>>> GetTicketSupportStatusHistories()
         {
-            return await _context.TicketSupportStatusHistories
-                .Select(history => new TicketSupportStatusHistoryDTOs
+            var histories = await _context.TicketSupportStatusHistories
+                .Include(th => th.TicketStatus) // Include related TicketStatus to get StatusName
+                .Select(th => new TicketSupportStatusHistoryDTOs
                 {
-                    TicketSupportID = history.TicketSupportID,
-                    StatusID = history.StatusID,
-                    StatusName = history.TicketStatus.StatusName,
-                    UpdatedAt = history.UpdatedAt
-                }).ToListAsync();
+                    TicketSupportStatusHistoryID = th.TicketSupportStatusHistoryID,
+                    TicketSupportID = th.TicketSupportID,
+                    StatusID = th.StatusID,
+                    StatusName = th.TicketStatus.StatusName, // Assuming TicketStatus has a Name property
+                    UpdatedAt = th.UpdatedAt
+                })
+                .ToListAsync();
+
+            return Ok(histories);
         }
 
-        // GET: api/TicketSupportStatusHistories/5
+        // GET: api/TicketSupportStatusHistory/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<TicketSupportStatusHistoryDTOs>>> GetTicketSupportStatusHistory(int id)
+        public async Task<ActionResult<TicketSupportStatusHistoryDTOs>> GetTicketSupportStatusHistory(int id)
         {
-            var statusHistories = new List<TicketSupportStatusHistoryDTOs>();
-            string connectionString = _configuration.GetConnectionString("con");
-
-            using (var connection = new SqlConnection(connectionString))
-            {
-                await connection.OpenAsync();
-                using (var command = new SqlCommand("GetTicketSupportStatusHistory", connection))
+            var history = await _context.TicketSupportStatusHistories
+                .Include(th => th.TicketStatus)
+                .Where(th => th.TicketSupportStatusHistoryID == id)
+                .Select(th => new TicketSupportStatusHistoryDTOs
                 {
-                    command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@TicketSupportID", id);
+                    TicketSupportStatusHistoryID = th.TicketSupportStatusHistoryID,
+                    TicketSupportID = th.TicketSupportID,
+                    StatusID = th.StatusID,
+                    StatusName = th.TicketStatus.StatusName,
+                    UpdatedAt = th.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
 
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            var historyDTO = new TicketSupportStatusHistoryDTOs
-                            {
-                                TicketSupportID = reader.GetInt32(reader.GetOrdinal("TicketSupportID")),
-                                StatusID = reader.GetInt32(reader.GetOrdinal("StatusID")),
-                                StatusName = reader.GetString(reader.GetOrdinal("StatusName")),
-                                UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt"))
-                            };
-                            statusHistories.Add(historyDTO);
-                        }
-                    }
-                }
-            }
-
-            if (statusHistories.Count == 0)
-            {
-                return NotFound(); // Return 404 if no records found
-            }
-
-            return Ok(statusHistories); // Return the list of DTOs
-        }
-        // POST: api/TicketSupportStatusHistories
-        [HttpPost]
-        public async Task<ActionResult<TicketSupportStatusHistory>> PostTicketSupportStatusHistory(TicketSupportStatusHistoryCreateDTO createDTO)
-        {
-            var statusHistory = new TicketSupportStatusHistory
-            {
-                TicketSupportID = createDTO.TicketSupportID,
-                StatusID = createDTO.StatusID,
-                UpdatedAt = createDTO.UpdatedAt
-            };
-
-            _context.TicketSupportStatusHistories.Add(statusHistory);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTicketSupportStatusHistory", new { id = statusHistory.TicketSupportID }, statusHistory);
-        }
-
-        // DELETE: api/TicketSupportStatusHistories/5
-        [HttpDelete("{id}/{updatedAt}")]
-        public async Task<IActionResult> DeleteTicketSupportStatusHistory(int id, DateTime updatedAt)
-        {
-            var statusHistory = await _context.TicketSupportStatusHistories
-                .FirstOrDefaultAsync(h => h.TicketSupportID == id && h.UpdatedAt == updatedAt);
-
-            if (statusHistory == null)
+            if (history == null)
             {
                 return NotFound();
             }
 
-            _context.TicketSupportStatusHistories.Remove(statusHistory);
-            await _context.SaveChangesAsync();
-
-            return Ok(" TicketSupportStatusHistory Delete successfully.");
+            return Ok(history);
         }
 
-        private bool TicketSupportStatusHistoryExists(int id, DateTime updatedAt)
+        // POST: api/TicketSupportStatusHistory
+        [HttpPost]
+        public async Task<ActionResult<TicketSupportStatusHistoryDTOs>> PostTicketSupportStatusHistory(TicketSupportStatusHistoryCreateDTO createDto)
         {
-            return _context.TicketSupportStatusHistories
-                .Any(h => h.TicketSupportID == id && h.UpdatedAt == updatedAt);
+            var ticketSupportStatusHistory = new TicketSupportStatusHistory
+            {
+                TicketSupportID = createDto.TicketSupportID,
+                StatusID = createDto.StatusID,
+                UpdatedAt = createDto.UpdatedAt
+            };
+
+            _context.TicketSupportStatusHistories.Add(ticketSupportStatusHistory);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetTicketSupportStatusHistory), new { id = ticketSupportStatusHistory.TicketSupportStatusHistoryID }, createDto);
+        }
+
+        // DELETE: api/TicketSupportStatusHistory/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTicketSupportStatusHistory(int id)
+        {
+            var history = await _context.TicketSupportStatusHistories.FindAsync(id);
+            if (history == null)
+            {
+                return NotFound();
+            }
+
+            _context.TicketSupportStatusHistories.Remove(history);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Return 204 No Content on successful deletion
         }
     }
 }

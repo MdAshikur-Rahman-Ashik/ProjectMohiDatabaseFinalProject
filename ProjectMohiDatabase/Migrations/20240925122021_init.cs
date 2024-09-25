@@ -203,6 +203,7 @@ namespace ProjectMohiDatabase.Migrations
                 columns: table => new
                 {
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TicketSupportStatusHistoryID = table.Column<int>(type: "int", nullable: false),
                     TicketSupportID = table.Column<int>(type: "int", nullable: false),
                     StatusID = table.Column<int>(type: "int", nullable: false)
                 },

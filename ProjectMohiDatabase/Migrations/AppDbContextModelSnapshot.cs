@@ -297,6 +297,9 @@ namespace ProjectMohiDatabase.Migrations
                     b.Property<int>("TicketSupportID")
                         .HasColumnType("int");
 
+                    b.Property<int>("TicketSupportStatusHistoryID")
+                        .HasColumnType("int");
+
                     b.HasKey("UpdatedAt");
 
                     b.HasIndex("StatusID");
