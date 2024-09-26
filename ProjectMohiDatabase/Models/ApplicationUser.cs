@@ -8,5 +8,6 @@
         public virtual ICollection<TicketSupport> TicketSupports { get; set; }
         public virtual ICollection<TicketManagement> TicketManagements { get; set; }
         public virtual ICollection<Reply> Replies { get; set; }
+        //
     }
 }
