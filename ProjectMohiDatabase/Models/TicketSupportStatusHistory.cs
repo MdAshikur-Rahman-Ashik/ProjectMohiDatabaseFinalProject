@@ -14,7 +14,7 @@ namespace ProjectMohiDatabase.Models
         public int StatusID { get; set; }
         public virtual TicketStatus TicketStatus { get; set; }
 
-        [Key, Column(Order = 0)]
+        
         public DateTime UpdatedAt { get; set; }
     }
 }

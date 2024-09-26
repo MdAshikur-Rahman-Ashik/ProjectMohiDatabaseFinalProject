@@ -20,39 +20,59 @@ namespace ProjectMohiDatabase.Controllers
 
         // GET: api/TicketSupports
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TicketSupportDTOs>>> GetTicketSupports()
+        public async Task<ActionResult<List<TicketSupportDto>>> GetAllTicketsAsync()
         {
-            return await _context.TicketSupports
-                .Select(ts => new TicketSupportDTOs
+            var tickets = await _context.TicketSupports
+                .Include(t => t.TicketAttachments)
+                .Include(t => t.TicketManagements)
+                .Include(t => t.Replies)
+                    .ThenInclude(r => r.ReplyAttachments)
+                .Include(t => t.TicketSupportStatusHistories)
+                .Include(t => t.TicketStatus)
+                .Select(t => new TicketSupportDto
                 {
-                    TicketSupportID = ts.TicketSupportID,
-                    ApplicationUserID = ts.ApplicationUserID,
-                    PackageID = ts.PackageID,
-                    StatusID = ts.StatusID,
-                    Email = ts.Email,
-                    PriorityID = ts.PriorityID,
-                    DepartmentID = ts.DepartmentID,
-                    Subject = ts.Subject,
-                    Description = ts.Description,
-                    TicketAttachments = ts.TicketAttachments.Select(ta => new TicketAttachmentDTOs
+                    TicketSupportID = t.TicketSupportID,
+                    ApplicationUserID = t.ApplicationUserID,
+                    PackageID = t.PackageID,
+                    StatusID = t.StatusID,
+                    Email = t.Email,
+                    PriorityID = t.PriorityID,
+                    DepartmentID = t.DepartmentID,
+                    Subject = t.Subject,
+                    Description = t.Description,
+                    TicketAttachments = t.TicketAttachments.Select(ta => new TicketAttachmentDto
                     {
                         TicketAttachID = ta.TicketAttachID,
-                        TicketSupportID = ta.TicketSupportID,
-                        AttachFileUrl = ta.AttachFile
+                        AttachFile = ta.AttachFile
                     }).ToList(),
-                    TicketSupportStatusHistories = ts.TicketSupportStatusHistories.Select(tsh => new TicketSupportStatusHistoryDTOs
+                    TicketManagements = t.TicketManagements.Select(tm => new TicketManagementDto
                     {
-                        // Map the fields of TicketSupportStatusHistory
+                        TicketManagementID = tm.TicketManagementID,
+                        TicketSupportID = tm.TicketSupportID,
+                        AssignedTo = tm.AssignedTo
                     }).ToList(),
-                    TicketManagements = ts.TicketManagements.Select(tm => new TicketManagementDTOs
+                    Replies = t.Replies.Select(r => new ReplyDto
                     {
-                        // Map the fields of TicketManagement
+                        ReplyID = r.ReplyID,
+                        TicketSupportID = r.TicketSupportID,
+                        Description = r.Description,
+                        UpdatedAt = r.UpdatedAt,
+                        ReplyAttachments = r.ReplyAttachments.Select(ra => new ReplyAttachmentDto
+                        {
+                            ReplyAttachID = ra.ReplyAttachID,
+                            AttachFile = ra.AttachFile
+                        }).ToList()
                     }).ToList(),
-                    Replies = ts.Replies.Select(r => new ReplyDTOs
+                    StatusHistories = t.TicketSupportStatusHistories.Select(ts => new TicketSupportStatusHistoryDto
                     {
-                        // Map the fields of Reply
-                    }).ToList()
-                }).ToListAsync();
+                        UpdatedAt = ts.UpdatedAt,
+                        StatusID = ts.StatusID
+                    }).ToList(),
+
+                })
+                .ToListAsync();
+
+            return Ok(tickets);
         }
 
         // GET: api/TicketSupports/5
@@ -104,7 +124,7 @@ namespace ProjectMohiDatabase.Controllers
 
         // POST: api/TicketSupports
         [HttpPost]
-        public async Task<ActionResult<TicketSupport>> PostTicketSupport( [FromForm]TicketSupportCreateDTO ticketSupportCreateDTO)
+        public async Task<ActionResult<TicketSupport>> PostTicketSupport( TicketSupportCreateDTO ticketSupportCreateDTO)
         {
             // Check if Department exists
             var departmentExists = await _context.Departments.AnyAsync(d => d.DepartmentID == ticketSupportCreateDTO.DepartmentID);
